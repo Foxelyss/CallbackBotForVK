@@ -1,8 +1,7 @@
 from vk_maria.dispatcher import Dispatcher
 from vk_maria import Vk, types
 from vk_maria.dispatcher.fsm import StatesGroup, State, MemoryStorage, FSMContext
-from vk_maria.types import KeyboardMarkup, Button, Color, RemoveReplyMarkup
-import time
+from vk_maria.types import KeyboardMarkup, Button, Color
 
 access_token = '***REMOVED***'
 vk = Vk(access_token=access_token)
@@ -27,20 +26,6 @@ default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить пре�
 @dp.message_handler(text="Начать")
 def welcome(event):
     event.answer("Привет, на связи бот для получения обратной связи!", keyboard=default_markup)
-
-
-# @dp.message_handler()
-# def echo(event: types.Message):
-#
-#     photos = []
-#     for x in event.message.attachments:
-#         if x.type != 'photo':
-#             continue
-#         photos.append(f"photo{x.photo.owner_id}_{x.photo.id}_{x.photo.access_key}")
-#
-#     vk.messages_send(peer_id=2000000000 + 1, attachment=",".join(photos))
-#
-#     print(",".join(photos))
 
 
 @dp.message_handler(text="Отправить предложение!")
@@ -112,19 +97,7 @@ def process_callback(event: types.Message, state: FSMContext):
                                      "conversation_message_id": event.message.id,
                                      })
 
-    print(",".join(photos))
-
     Form.finish()
-
-
-# response = vk.method('messages.getConversations', {
-#                      'count': 20, 'random_id': 123132})
-#
-# for item in response['items']:
-#     conv = item['conversation']
-#     peer_id = conv['peer']['id']
-#     title = conv.get('chat_settings', {}).get('title', 'Личный диалог')
-#     print(f"ID беседы: {peer_id}, Название: {title}")
 
 
 dp.start_polling(debug=True)
