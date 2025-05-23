@@ -1,11 +1,20 @@
+import json
+import os
+import secrets
+from dotenv import load_dotenv
+
 from vk_maria.dispatcher import Dispatcher
 from vk_maria import Vk, types
 from vk_maria.dispatcher.fsm import StatesGroup, State, MemoryStorage, FSMContext
 from vk_maria.types import KeyboardMarkup, Button, Color
 
-access_token = '***REMOVED***'
+load_dotenv()
+
+access_token = os.getenv("VK_API_KEY")
+delay_in_seconds = os.getenv("DELAY")
+
 vk = Vk(access_token=access_token)
-dp = Dispatcher(vk, MemoryStorage(), )
+dp = Dispatcher(vk, MemoryStorage())
 
 
 class Form(StatesGroup):
@@ -47,7 +56,7 @@ def process_name(event: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Form.waiting_for_phone)
 def process_phone(event: types.Message, state: FSMContext):
-    if len(event.message.text) < 11 or not all([x in "0123456789()+" for x in event.message.text]):
+    if not 11 < len(event.message.text) < 20 or not all([x in "0123456789()+" for x in event.message.text]):
         event.answer("Должно быть введен корректный номер телефона")
         return
 
@@ -62,6 +71,9 @@ def process_text(event: types.Message, state: FSMContext):
     if len(event.message.text) < 20:
         event.answer("Текст слишком маленький")
         return
+    elif len(event.message.text) > 7000:
+        event.answer("Текст слишком большой!")
+        return
 
     state.update_data(text=event.message.text)
 
@@ -74,6 +86,10 @@ def process_text(event: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Form.waiting_for_photos)
 def process_callback(event: types.Message, state: FSMContext):
+    if event.message.text not in ("Фото нет", ""):
+        event.answer("Если фото нет, необходимо нажать на кнопку!")
+        return
+
     state.update_data(photos=event.message.text)
     user_data = state.get_data()
     event.answer("Принято!", keyboard=default_markup)
@@ -88,14 +104,14 @@ def process_callback(event: types.Message, state: FSMContext):
     vk.messages_send(peer_id=2000000000 + 1,
                      message=f"Обращение от: {user_data["name"]}\nС телефоном: {user_data["phone"]}\n\n{user_data["text"]}",
                      attachment=",".join(photos),
-                     content_source={"type": "message",
-                                     # от чьего имени указан peer_id. т.е. вы можете использовать контент из сообщения другой группы.
-                                     "owner_id": event.peer_id,
-                                     # id диалога
-                                     "peer_id": event.chat_id,
-                                     # id сообщения в беседе. Не путать с message.id профиля
-                                     "conversation_message_id": event.message.id,
-                                     })
+                     content_source=json.dumps({"type": "message",
+                                                # от чьего имени указан peer_id. т.е. вы можете использовать контент из сообщения другой группы.
+                                                "owner_id": event.message.from_id,
+                                                # id диалога
+                                                "peer_id": event.message.peer_id,
+                                                # id сообщения в беседе. Не путать с message.id профиля
+                                                "conversation_message_id": event.message.conversation_message_id,
+                                                }))
 
     Form.finish()
 
