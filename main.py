@@ -12,6 +12,7 @@ load_dotenv()
 
 access_token = os.getenv("VK_API_KEY")
 delay_in_seconds = os.getenv("DELAY")
+beseda_id = int(os.getenv("VK_TALK_ID"))
 
 vk = Vk(access_token=access_token)
 dp = Dispatcher(vk, MemoryStorage())
@@ -101,7 +102,7 @@ def process_callback(event: types.Message, state: FSMContext):
             continue
         photos.append(f"photo{x.photo.owner_id}_{x.photo.id}_{x.photo.access_key}")
 
-    vk.messages_send(peer_id=2000000000 + 1,
+    vk.messages_send(peer_id=2000000000 + beseda_id,
                      message=f"Обращение от: {user_data["name"]}\nС телефоном: {user_data["phone"]}\n\n{user_data["text"]}",
                      attachment=",".join(photos),
                      content_source=json.dumps({"type": "message",
@@ -114,6 +115,11 @@ def process_callback(event: types.Message, state: FSMContext):
                                                 }))
 
     Form.finish()
+
+
+@dp.message_handler()
+def echo(event: types.Message):
+    event.reply("Для отправки сообщения нажмите на кнопку и заполните анкету", keyboard=default_markup)
 
 
 dp.start_polling(debug=True)
