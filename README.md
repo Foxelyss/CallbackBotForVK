@@ -5,10 +5,10 @@
 ```dotenv
 # Ключ API!
 VK_API_KEY="КлючикОтAPI"
-# id беседы в группе 
-# https://vk.com/im/convo/2000000003?entrypoint=unknown&rp=peer2000000003
-# в этой ссылке id беседы 3,
-VK_TALK_ID=3
+# id беседы в группе, находится при заходе в беседу через настройки сообщества
+# https://vk.com/gim1234?sel=c1
+# в этой ссылке id беседы 1,
+VK_TALK_ID=1
 # Неиспользуется
 DELAY=300
 ```
