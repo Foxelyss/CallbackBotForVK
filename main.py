@@ -13,6 +13,7 @@ load_dotenv()
 access_token = os.getenv("VK_API_KEY")
 delay_in_seconds = os.getenv("DELAY")
 beseda_id = int(os.getenv("VK_TALK_ID"))
+debug_mode = bool(os.getenv("DEBUG"))
 
 vk = Vk(access_token=access_token)
 dp = Dispatcher(vk, MemoryStorage())
@@ -57,13 +58,14 @@ def process_name(event: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Form.waiting_for_phone)
 def process_phone(event: types.Message, state: FSMContext):
-    if not 11 < len(event.message.text) < 20 or not all([x in "0123456789()+" for x in event.message.text]):
+    phone = event.message.text.replace(" ", "")
+    if not 10 < len(phone) < 20 or not all([x in "0123456789()+" for x in phone]):
         event.answer("Должно быть введен корректный номер телефона")
         return
 
-    state.update_data(phone=event.message.text)
+    state.update_data(phone=phone)
 
-    event.reply('Введите ваше обращение к администрации:')
+    event.reply("Введите ваше обращение к администрации:")
     Form.next()
 
 
@@ -98,28 +100,37 @@ def process_callback(event: types.Message, state: FSMContext):
     photos = []
 
     for x in event.message.attachments:
-        if x.type != 'photo':
+        if x.type != "photo":
             continue
         photos.append(f"photo{x.photo.owner_id}_{x.photo.id}_{x.photo.access_key}")
 
-    vk.messages_send(peer_id=2000000000 + beseda_id,
-                     message=f"Обращение от: {user_data["name"]}\nС телефоном: {user_data["phone"]}\n\n{user_data["text"]}",
-                     attachment=",".join(photos),
-                     content_source=json.dumps({"type": "message",
-                                                # от чьего имени указан peer_id. т.е. вы можете использовать контент из сообщения другой группы.
-                                                "owner_id": event.message.from_id,
-                                                # id диалога
-                                                "peer_id": event.message.peer_id,
-                                                # id сообщения в беседе. Не путать с message.id профиля
-                                                "conversation_message_id": event.message.conversation_message_id,
-                                                }))
+    vk.messages_send(
+        peer_id=2000000000 + beseda_id,
+        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\n{'-' * 15}\n{user_data['text']}",
+        attachment=",".join(photos),
+        content_source=json.dumps(
+            {
+                "type": "message",
+                # от чьего имени указан peer_id. т.е. вы можете использовать контент из сообщения другой группы.
+                "owner_id": event.message.from_id,
+                # id диалога
+                "peer_id": event.message.peer_id,
+                # id сообщения в беседе. Не путать с message.id профиля
+                "conversation_message_id": event.message.conversation_message_id,
+            }
+        ),
+    )
 
     Form.finish()
 
 
 @dp.message_handler()
 def echo(event: types.Message):
-    event.reply("Для отправки сообщения нажмите на кнопку и заполните анкету", keyboard=default_markup)
+    event.reply(
+        "Для отправки сообщения нажмите на кнопку и заполните анкету",
+        keyboard=default_markup,
+    )
 
 
-dp.start_polling(debug=True)
+while True:
+    dp.start_polling(debug=debug_mode)

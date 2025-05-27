@@ -9,6 +9,8 @@ VK_API_KEY="КлючикОтAPI"
 # https://vk.com/gim1234?sel=c1
 # в этой ссылке id беседы 1,
 VK_TALK_ID=1
+# Режим отладки(показ ошибок)
+DEBUG=true
 # Неиспользуется
 DELAY=300
 ```
