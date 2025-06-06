@@ -59,7 +59,7 @@ def process_name(event: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.waiting_for_phone)
 def process_phone(event: types.Message, state: FSMContext):
     phone = event.message.text.replace(" ", "")
-    if not 10 < len(phone) < 20 or not all([x in "0123456789()+" for x in phone]):
+    if not 10 < len(phone) < 20 or not all([x in "0123456789()+-" for x in phone]):
         event.answer("Должно быть введен корректный номер телефона")
         return
 
@@ -106,7 +106,7 @@ def process_callback(event: types.Message, state: FSMContext):
 
     vk.messages_send(
         peer_id=2000000000 + beseda_id,
-        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\n{'-' * 15}\n{user_data['text']}",
+        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{event.message.from_id}\n{'-' * 15}\n{user_data['text']}",
         attachment=",".join(photos),
         content_source=json.dumps(
             {
