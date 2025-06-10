@@ -31,15 +31,16 @@ users_info = dict()
 
 default_markup = KeyboardMarkup(one_time=False)
 
-default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить предложение!"))
+default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить предложение"))
 
 
 @dp.message_handler(text="Начать")
 def welcome(event):
-    event.answer("Привет, на связи бот для получения обратной связи!", keyboard=default_markup)
+    event.answer("""Добро пожаловать в чат-бот для обращений.
+    Сюда вы можете написать свои вопросы, жалобы, или предложения администрации ОГБПОУ «ТТИТ»""", keyboard=default_markup)
 
 
-@dp.message_handler(text="Отправить предложение!")
+@dp.message_handler(text="Отправить предложение")
 def start_send_process(event):
     event.reply("Введите своё фамилию и имя для обращения:")
     Form.waiting_for_name.set()
@@ -60,7 +61,7 @@ def process_name(event: types.Message, state: FSMContext):
 def process_phone(event: types.Message, state: FSMContext):
     phone = event.message.text.replace(" ", "")
     if not 10 < len(phone) < 20 or not all([x in "0123456789()+-" for x in phone]):
-        event.answer("Должно быть введен корректный номер телефона")
+        event.answer("Должен быть введен корректный номер телефона")
         return
 
     state.update_data(phone=phone)
@@ -83,14 +84,14 @@ def process_text(event: types.Message, state: FSMContext):
     markup = KeyboardMarkup(one_time=True)
     markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
-    event.reply("Прикрепите все фотографии сейчас(если они нужны и имеются)!", keyboard=markup)
+    event.reply("Прикрепите и отправьте фотографии сейчас(если они нужны)", keyboard=markup)
     Form.next()
 
 
 @dp.message_handler(state=Form.waiting_for_photos)
 def process_callback(event: types.Message, state: FSMContext):
-    if event.message.text not in ("Фото нет", ""):
-        event.answer("Если фото нет, необходимо нажать на кнопку!")
+    if event.message.text not in ("Фото нет"):
+        event.answer("Если фото нет, необходимо нажать на кнопку")
         return
 
     state.update_data(photos=event.message.text)
