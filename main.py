@@ -1,6 +1,8 @@
 import json
 import os
 import secrets
+import logging
+import traceback
 from dotenv import load_dotenv
 
 from vk_maria.dispatcher import Dispatcher
@@ -10,13 +12,28 @@ from vk_maria.types import KeyboardMarkup, Button, Color
 
 load_dotenv()
 
-access_token = os.getenv("VK_API_KEY")
-delay_in_seconds = os.getenv("DELAY")
-beseda_id = int(os.getenv("VK_TALK_ID"))
-debug_mode = bool(os.getenv("DEBUG"))
+if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+else:
+    logging.error("Данный файл нельзя импортировать как библиотеку")
+    exit()
 
-vk = Vk(access_token=access_token)
-dp = Dispatcher(vk, MemoryStorage())
+try:
+    access_token = os.getenv("VK_API_KEY")
+    delay_in_seconds = os.getenv("DELAY")
+    beseda_id = int(os.getenv("VK_TALK_ID"))
+    debug_mode = bool(os.getenv("DEBUG"))
+except:
+    logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG)")
+    exit()
+
+try:
+    vk = Vk(access_token=access_token)
+    dp = Dispatcher(vk, MemoryStorage())
+except Exception as e:
+    logger.error("Инициализация не удалась!")
+    logger.exception(e)
+    exit()
 
 
 class Form(StatesGroup):
@@ -34,19 +51,32 @@ default_markup = KeyboardMarkup(one_time=False)
 default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить предложение"))
 
 
+def log_exception(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.error("".join(traceback.format_exception(type(e), e, e.__traceback__.tb_next, limit=3)))
+    return wrapper
+
+
 @dp.message_handler(text="Начать")
+@log_exception
 def welcome(event):
     event.answer("""Добро пожаловать в чат-бот для обращений.
-    Сюда вы можете написать свои вопросы, жалобы, или предложения администрации ОГБПОУ «ТТИТ»""", keyboard=default_markup)
+    Сюда вы можете написать свои вопросы, жалобы, или предложения администрации ОГБПОУ «ТТИТ»""",
+                 keyboard=default_markup)
 
 
 @dp.message_handler(text="Отправить предложение")
+@log_exception
 def start_send_process(event):
     event.reply("Введите своё фамилию и имя для обращения:")
     Form.waiting_for_name.set()
 
 
 @dp.message_handler(state=Form.waiting_for_name)
+@log_exception
 def process_name(event: types.Message, state: FSMContext):
     if len(event.message.text) < 6 or len(event.message.text.split()) < 2:
         event.answer("Должно быть введено корректное имя и фамилия!")
@@ -58,6 +88,7 @@ def process_name(event: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Form.waiting_for_phone)
+@log_exception
 def process_phone(event: types.Message, state: FSMContext):
     phone = event.message.text.replace(" ", "")
     if not 10 < len(phone) < 20 or not all([x in "0123456789()+-" for x in phone]):
@@ -71,6 +102,7 @@ def process_phone(event: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Form.waiting_for_text)
+@log_exception
 def process_text(event: types.Message, state: FSMContext):
     if len(event.message.text) < 20:
         event.answer("Текст слишком маленький")
@@ -89,6 +121,7 @@ def process_text(event: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Form.waiting_for_photos)
+@log_exception
 def process_callback(event: types.Message, state: FSMContext):
     if event.message.text not in ("Фото нет"):
         event.answer("Если фото нет, необходимо нажать на кнопку")
@@ -123,15 +156,29 @@ def process_callback(event: types.Message, state: FSMContext):
     )
 
     Form.finish()
+    logger.info(f'Обращение успешно отправлено от {user_data['name']} в группу предложки!')
 
 
 @dp.message_handler()
+@log_exception
 def echo(event: types.Message):
     event.reply(
         "Для отправки сообщения нажмите на кнопку и заполните анкету",
         keyboard=default_markup,
     )
+    vk.messages_send(
+        peer_id=2000000000 + beseda_id,
+        message=f"",
+        attachment=",",
+    )
 
+logging.basicConfig(format='%(asctime)s | %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.INFO)
+logger.info('Начинаю работу')
+
+def poll():
+    polling_func = log_exception(lambda:dp.start_polling(debug=debug_mode))
+    polling_func()
 
 while True:
-    dp.start_polling(debug=debug_mode)
+    poll()
+    logger.info('Восстановление процесса')
