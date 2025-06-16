@@ -107,10 +107,10 @@ def process_phone(event: types.Message, state: FSMContext):
 @log_exception
 def process_text(event: types.Message, state: FSMContext):
     if len(event.message.text) < 20:
-        event.answer("Текст слишком маленький")
+        event.answer("Текст слишком маленький.")
         return
-    elif len(event.message.text) > 7000:
-        event.answer("Текст слишком большой!")
+    elif len(event.message.text) > 3500:
+        event.answer("Текст слишком большой(Максимум: 3500 символов)!")
         return
 
     state.update_data(text=event.message.text)
