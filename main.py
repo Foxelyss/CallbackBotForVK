@@ -23,6 +23,8 @@ try:
     delay_in_seconds = os.getenv("DELAY")
     beseda_id = int(os.getenv("VK_TALK_ID"))
     debug_mode = bool(os.getenv("DEBUG"))
+    if access_token is None or delay_in_seconds is None:
+        raise Exception()
 except:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG)")
     exit()
@@ -165,11 +167,6 @@ def echo(event: types.Message):
     event.reply(
         "Для отправки сообщения нажмите на кнопку и заполните анкету",
         keyboard=default_markup,
-    )
-    vk.messages_send(
-        peer_id=2000000000 + beseda_id,
-        message=f"",
-        attachment=",",
     )
 
 logging.basicConfig(format='%(asctime)s | %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.INFO)
