@@ -3,16 +3,17 @@ import os
 import secrets
 import logging
 import traceback
+from functools import wraps
 from dotenv import load_dotenv
 
 from vk_maria.dispatcher import Dispatcher
 from vk_maria import Vk, types
-from vk_maria.dispatcher.fsm import StatesGroup, State, MemoryStorage, FSMContext
+from vk_maria.dispatcher.fsm import StatesGroup, State, PickleStorage, FSMContext
 from vk_maria.types import KeyboardMarkup, Button, Color
 
 load_dotenv()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 else:
     logging.error("Данный файл нельзя импортировать как библиотеку")
@@ -25,13 +26,13 @@ try:
     debug_mode = bool(os.getenv("DEBUG"))
     if access_token is None or delay_in_seconds is None:
         raise Exception()
-except:
+except Exception:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG)")
     exit()
 
 try:
     vk = Vk(access_token=access_token)
-    dp = Dispatcher(vk, MemoryStorage())
+    dp = Dispatcher(vk, PickleStorage("state.pck"))
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
@@ -54,27 +55,14 @@ default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить пре�
 
 
 def log_exception(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
             logger.error("".join(traceback.format_exception(type(e), e, e.__traceback__.tb_next, limit=3)))
+
     return wrapper
-
-
-@dp.message_handler(text="Начать")
-@log_exception
-def welcome(event):
-    event.answer("""Добро пожаловать в чат-бот для обращений.
-    Сюда вы можете написать свои вопросы, жалобы, или предложения администрации ОГБПОУ «ТТИТ»""",
-                 keyboard=default_markup)
-
-
-@dp.message_handler(text="Отправить предложение")
-@log_exception
-def start_send_process(event):
-    event.reply("Введите своё фамилию и имя для обращения:")
-    Form.waiting_for_name.set()
 
 
 @dp.message_handler(state=Form.waiting_for_name)
@@ -126,7 +114,10 @@ def process_text(event: types.Message, state: FSMContext):
 @log_exception
 def process_callback(event: types.Message, state: FSMContext):
     if event.message.text not in ("Фото нет"):
-        event.answer("Если фото нет, необходимо нажать на кнопку")
+        markup = KeyboardMarkup(one_time=True)
+        markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
+
+        event.answer("Если фото нет, необходимо нажать на кнопку", keyboard=markup)
         return
 
     state.update_data(photos=event.message.text)
@@ -142,7 +133,9 @@ def process_callback(event: types.Message, state: FSMContext):
 
     vk.messages_send(
         peer_id=2000000000 + beseda_id,
-        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{event.message.from_id}\n{'-' * 15}\n{user_data['text']}",
+        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{
+            event.message.from_id
+        }\n{'-' * 15}\n{user_data['text']}",
         attachment=",".join(photos),
         content_source=json.dumps(
             {
@@ -158,7 +151,24 @@ def process_callback(event: types.Message, state: FSMContext):
     )
 
     Form.finish()
-    logger.info(f'Обращение успешно отправлено от {user_data['name']} в группу предложки!')
+    logger.info(f"Обращение успешно отправлено от {user_data['name']} в группу предложки!")
+
+
+@dp.message_handler(text="Начать")
+@log_exception
+def welcome(event):
+    event.answer(
+        """Добро пожаловать в чат-бот для обращений.
+    Сюда вы можете написать свои вопросы, жалобы, или предложения администрации ОГБПОУ «ТТИТ»""",
+        keyboard=default_markup,
+    )
+
+
+@dp.message_handler(text="Отправить предложение")
+@log_exception
+def start_send_process(event):
+    event.reply("Введите своё фамилию и имя для обращения:")
+    Form.waiting_for_name.set()
 
 
 @dp.message_handler()
@@ -169,13 +179,16 @@ def echo(event: types.Message):
         keyboard=default_markup,
     )
 
-logging.basicConfig(format='%(asctime)s | %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.INFO)
-logger.info('Начинаю работу')
+
+logging.basicConfig(format="%(asctime)s | %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO)
+logger.info("Начинаю работу")
+
 
 def poll():
-    polling_func = log_exception(lambda:dp.start_polling(debug=debug_mode))
+    polling_func = log_exception(lambda: dp.start_polling(debug=debug_mode))
     polling_func()
+
 
 while True:
     poll()
-    logger.info('Восстановление процесса')
+    logger.info("Восстановление процесса")
