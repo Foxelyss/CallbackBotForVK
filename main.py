@@ -32,7 +32,7 @@ except Exception:
 
 try:
     vk = Vk(access_token=access_token)
-    dp = Dispatcher(vk, PickleStorage("state/state.pck"))
+    dp = Dispatcher(vk, PickleStorage("state.pck"))
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
