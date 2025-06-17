@@ -186,7 +186,5 @@ def poll():
     polling_func = log_exception(lambda: dp.start_polling(debug=debug_mode))
     polling_func()
 
-
-while True:
-    poll()
-    logger.info("Восстановление процесса")
+poll()
+logger.info("Процесс завершился")
