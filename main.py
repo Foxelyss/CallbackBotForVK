@@ -82,7 +82,14 @@ def process_name(event: types.Message, state: FSMContext):
 def process_phone(event: types.Message, state: FSMContext):
     phone = event.message.text.replace(" ", "")
     if not 10 < len(phone) < 20 or not all([x in "0123456789()+-" for x in phone]):
-        event.answer("Должен быть введен корректный номер телефона")
+        
+        if len(phone) <= 10:
+            event.answer("Телефон слишком короткий")
+        elif len(phone) >= 20:
+            event.answer("Телефон слишком длинный")
+        else:
+            event.answer("Телефон не может содержать букв")
+
         return
 
     state.update_data(phone=phone)
@@ -95,7 +102,7 @@ def process_phone(event: types.Message, state: FSMContext):
 @log_exception
 def process_text(event: types.Message, state: FSMContext):
     if len(event.message.text) < 20:
-        event.answer("Текст слишком маленький.")
+        event.answer("Текст слишком маленький")
         return
     elif len(event.message.text) > 3500:
         event.answer("Текст слишком большой(Максимум: 3500 символов)!")
