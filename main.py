@@ -133,9 +133,7 @@ def process_callback(event: types.Message, state: FSMContext):
 
     vk.messages_send(
         peer_id=2000000000 + beseda_id,
-        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{
-            event.message.from_id
-        }\n{'-' * 15}\n{user_data['text']}",
+        message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{event.message.from_id}\n{'-' * 15}\n{user_data['text']}",
         attachment=",".join(photos),
         content_source=json.dumps(
             {
