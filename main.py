@@ -94,17 +94,14 @@ def process_phone(event: types.Message, state: FSMContext):
 
     state.update_data(phone=phone)
 
-    event.reply("Введите ваше обращение к администрации:")
+    event.reply("Отправьте ваше обращение к администрации:")
     Form.next()
 
 
 @dp.message_handler(state=Form.waiting_for_text)
 @log_exception
 def process_text(event: types.Message, state: FSMContext):
-    if len(event.message.text) < 20:
-        event.answer("Текст слишком маленький")
-        return
-    elif len(event.message.text) > 3500:
+    if len(event.message.text) > 3500:
         event.answer("Текст слишком большой(Максимум: 3500 символов)!")
         return
 
@@ -129,7 +126,7 @@ def process_callback(event: types.Message, state: FSMContext):
 
     state.update_data(photos=event.message.text)
     user_data = state.get_data()
-    event.answer("Принято! Ваше обращение было сформировано и отправлено в администрации техникума", keyboard=default_markup)
+    event.answer("Принято! Ваше обращение было сформировано и отправлено администрации техникума. Если хотите отправить новое обращение, нажмите на кнопку ниже", keyboard=default_markup)
 
     photos = []
 
