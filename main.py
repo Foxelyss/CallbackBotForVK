@@ -129,7 +129,7 @@ def process_callback(event: types.Message, state: FSMContext):
 
     state.update_data(photos=event.message.text)
     user_data = state.get_data()
-    event.answer("Принято!", keyboard=default_markup)
+    event.answer("Принято! Ваше обращение было успешно отправлено в администрацию", keyboard=default_markup)
 
     photos = []
 
