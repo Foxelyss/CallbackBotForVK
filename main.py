@@ -49,7 +49,7 @@ class Form(StatesGroup):
 users = dict()
 users_info = dict()
 
-default_markup = KeyboardMarkup(one_time=False)
+default_markup = KeyboardMarkup(one_time=True)
 
 default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
 
