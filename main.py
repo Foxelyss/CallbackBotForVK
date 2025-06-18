@@ -49,7 +49,7 @@ class Form(StatesGroup):
 users = dict()
 users_info = dict()
 
-default_markup = KeyboardMarkup(one_time=True)
+default_markup = KeyboardMarkup(one_time=False)
 
 default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
 
@@ -172,7 +172,7 @@ def welcome(event):
 @dp.message_handler(text="Создать обращение")
 @log_exception
 def start_send_process(event):
-    event.reply("Введите своё фамилию и имя для обращения:")
+    event.reply("Введите своё фамилию и имя для обращения:", markup=KeyboardMarkup())
     Form.waiting_for_name.set()
 
 
