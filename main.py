@@ -169,7 +169,7 @@ def welcome(event):
 @dp.message_handler(text="Создать обращение")
 @log_exception
 def start_send_process(event):
-    event.reply("Введите своё фамилию и имя для обращения:", markup=KeyboardMarkup())
+    event.reply("Введите своё фамилию и имя для обращения:", keyboard=KeyboardMarkup())
     Form.waiting_for_name.set()
 
 
