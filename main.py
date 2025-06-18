@@ -180,7 +180,7 @@ def start_send_process(event):
 @log_exception
 def echo(event: types.Message):
     event.reply(
-        "Для отправки сообщения нажмите на кнопку и заполните анкету",
+        "Для отправки обращения нажмите на кнопку и заполните анкету",
         keyboard=default_markup,
     )
 
