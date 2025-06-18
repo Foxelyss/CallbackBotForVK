@@ -51,7 +51,7 @@ users_info = dict()
 
 default_markup = KeyboardMarkup(one_time=False)
 
-default_markup.add_button(Button.Text(Color.PRIMARY, "Отправить предложение"))
+default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
 
 
 def log_exception(func):
@@ -113,7 +113,7 @@ def process_text(event: types.Message, state: FSMContext):
     markup = KeyboardMarkup(one_time=True)
     markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
-    event.reply("Прикрепите и отправьте фотографии сейчас(если они нужны)", keyboard=markup)
+    event.reply("Отправьте фотографии, которые вы хотите прикрепить к обращению, если фотографий несколько, отправьте их одним сообщением", keyboard=markup)
     Form.next()
 
 
@@ -129,7 +129,7 @@ def process_callback(event: types.Message, state: FSMContext):
 
     state.update_data(photos=event.message.text)
     user_data = state.get_data()
-    event.answer("Принято! Ваше обращение было успешно отправлено в администрацию", keyboard=default_markup)
+    event.answer("Принято! Ваше обращение было сформировано и отправлено в администрации техникума", keyboard=default_markup)
 
     photos = []
 
@@ -169,7 +169,7 @@ def welcome(event):
     )
 
 
-@dp.message_handler(text="Отправить предложение")
+@dp.message_handler(text="Создать обращение")
 @log_exception
 def start_send_process(event):
     event.reply("Введите своё фамилию и имя для обращения:")
