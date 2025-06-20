@@ -68,11 +68,19 @@ def log_exception(func):
 @dp.message_handler(state=Form.waiting_for_name)
 @log_exception
 def process_name(event: types.Message, state: FSMContext):
-    if len(event.message.text) < 6 or len(event.message.text.split()) < 2:
+    details = event.message.text.split()
+    name = " ".join(details)
+
+    if len(event.message.text) < 4 or len(details) < 2:
         event.answer("Должно быть введено корректное имя и фамилия!")
         return
+    if len(name) > 36:
+        event.answer(
+            "Реквизиты слишком длинные, укажите только имя и фамилию, если ошибка остаётся, сократите фамилию или/и имя"
+        )
+        return
 
-    state.update_data(name=event.message.text)
+    state.update_data(name=name)
     event.reply("Ваш телефон:")
     Form.next()
 
@@ -82,7 +90,6 @@ def process_name(event: types.Message, state: FSMContext):
 def process_phone(event: types.Message, state: FSMContext):
     phone = event.message.text.replace(" ", "")
     if not 10 < len(phone) < 20 or not all([x in "0123456789()+-" for x in phone]):
-        
         if len(phone) <= 10:
             event.answer("Телефон слишком короткий")
         elif len(phone) >= 20:
@@ -110,7 +117,10 @@ def process_text(event: types.Message, state: FSMContext):
     markup = KeyboardMarkup(one_time=True)
     markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
-    event.reply("Отправьте фотографии, которые вы хотите прикрепить к обращению, если фотографий несколько, отправьте их одним сообщением", keyboard=markup)
+    event.reply(
+        "Отправьте фотографии, которые вы хотите прикрепить к обращению, если фотографий несколько, отправьте их одним сообщением(До 10 штук)",
+        keyboard=markup,
+    )
     Form.next()
 
 
@@ -126,7 +136,10 @@ def process_callback(event: types.Message, state: FSMContext):
 
     state.update_data(photos=event.message.text)
     user_data = state.get_data()
-    event.answer("Принято! Ваше обращение было сформировано и отправлено администрации техникума. Если хотите отправить новое обращение, нажмите на кнопку ниже", keyboard=default_markup)
+    event.answer(
+        "Принято! Ваше обращение было сформировано и отправлено администрации техникума. Если хотите отправить новое обращение, нажмите на кнопку ниже",
+        keyboard=default_markup,
+    )
 
     photos = []
 
@@ -189,6 +202,7 @@ logger.info("Начинаю работу")
 def poll():
     polling_func = log_exception(lambda: dp.start_polling(debug=debug_mode))
     polling_func()
+
 
 poll()
 logger.info("Процесс завершился")
