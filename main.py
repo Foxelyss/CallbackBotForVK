@@ -134,19 +134,17 @@ def process_callback(event: types.Message, state: FSMContext):
         event.answer("Если фото нет, необходимо нажать на кнопку", keyboard=markup)
         return
 
-    state.update_data(photos=event.message.text)
-    user_data = state.get_data()
-    event.answer(
-        "Принято! Ваше обращение было сформировано и отправлено администрации техникума. Если хотите отправить новое обращение, нажмите на кнопку ниже",
-        keyboard=default_markup,
-    )
-
     photos = []
 
     for x in event.message.attachments:
         if x.type != "photo":
-            continue
+            event.answer(
+                "Обнаружены недопустимые вложения, пожалуйста используйте только фотографии, отправленные при помощи быстрой отправки"
+            )
+            return
         photos.append(f"photo{x.photo.owner_id}_{x.photo.id}_{x.photo.access_key}")
+
+    user_data = state.get_data()
 
     vk.messages_send(
         peer_id=2000000000 + beseda_id,
@@ -163,6 +161,11 @@ def process_callback(event: types.Message, state: FSMContext):
                 "conversation_message_id": event.message.conversation_message_id,
             }
         ),
+    )
+
+    event.answer(
+        "Принято! Ваше обращение было сформировано и отправлено администрации техникума. Если хотите отправить новое обращение, нажмите на кнопку ниже",
+        keyboard=default_markup,
     )
 
     Form.finish()
