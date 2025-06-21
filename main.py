@@ -207,5 +207,9 @@ def poll():
     polling_func()
 
 
-poll()
+try:
+    poll()
+except KeyboardInterrupt:
+    logger.info("Сохранение состояния на диск")
+
 logger.info("Процесс завершился")
