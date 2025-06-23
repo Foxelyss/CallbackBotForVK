@@ -1,6 +1,5 @@
 import json
 import os
-import secrets
 import logging
 import traceback
 from functools import wraps
@@ -22,12 +21,12 @@ else:
 try:
     access_token = os.getenv("VK_API_KEY")
     delay_in_seconds = os.getenv("DELAY")
-    beseda_id = int(os.getenv("VK_TALK_ID"))
+    talk_id = int(os.getenv("VK_TALK_ID"))
     debug_mode = bool(os.getenv("DEBUG"))
     if access_token is None or delay_in_seconds is None:
         raise Exception()
 except Exception:
-    logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG)")
+    logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG, DELAY)")
     exit()
 
 try:
@@ -46,9 +45,6 @@ class Form(StatesGroup):
     waiting_for_photos: State
 
 
-users = dict()
-users_info = dict()
-
 default_markup = KeyboardMarkup(one_time=False)
 
 default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
@@ -61,7 +57,7 @@ def log_exception(func):
             return func(*args, **kwargs)
         except Exception as e:
             logger.error("".join(traceback.format_exception(type(e), e, e.__traceback__.tb_next, limit=3)))
-            logger.error(f"Переменные при ошибки позиционные: {args}; именованные: {kwargs}")
+            logger.error(f"Переменные при ошибки, позиционные: {args}; именованные: {kwargs}")
 
     return wrapper
 
@@ -148,7 +144,7 @@ def process_callback(event: types.Message, state: FSMContext):
     user_data = state.get_data()
 
     vk.messages_send(
-        peer_id=2000000000 + beseda_id,
+        peer_id=2000000000 + talk_id,
         message=f"Обращение от: {user_data['name']}\nС телефоном: {user_data['phone']}\nhttps://vk.com/id{event.message.from_id}\n{'-' * 15}\n{user_data['text']}",
         attachment=",".join(photos),
         content_source=json.dumps(
@@ -203,9 +199,9 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%
 logger.info("Начинаю работу")
 
 
+@log_exception
 def poll():
-    polling_func = log_exception(lambda: dp.start_polling(debug=debug_mode))
-    polling_func()
+    dp.start_polling(debug=debug_mode)
 
 
 try:
