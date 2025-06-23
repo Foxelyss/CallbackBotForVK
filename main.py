@@ -124,7 +124,7 @@ def process_text(event: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.waiting_for_photos)
 @log_exception
 def process_callback(event: types.Message, state: FSMContext):
-    if event.message.text not in ("Фото нет"):
+    if event.message.text != "Фото нет":
         markup = KeyboardMarkup(one_time=True)
         markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
@@ -165,6 +165,7 @@ def process_callback(event: types.Message, state: FSMContext):
         keyboard=default_markup,
     )
 
+    state.finish(with_data=True)
     Form.finish()
     logger.info(f"Обращение успешно отправлено от {user_data['name']} в беседу предложки!")
 
