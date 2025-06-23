@@ -16,7 +16,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 else:
     logging.error("Данный файл нельзя импортировать как библиотеку")
-    exit()
+    os.exit(100)
 
 try:
     access_token = os.getenv("VK_API_KEY")
@@ -27,7 +27,7 @@ try:
         raise Exception()
 except Exception:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG, DELAY)")
-    exit()
+    os.exit(1)
 
 try:
     vk = Vk(access_token=access_token)
@@ -35,7 +35,7 @@ try:
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
-    exit()
+    os.exit(2)
 
 
 class Form(StatesGroup):
