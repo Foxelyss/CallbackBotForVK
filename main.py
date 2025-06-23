@@ -61,7 +61,7 @@ def log_exception(func):
             return func(*args, **kwargs)
         except Exception as e:
             logger.error("".join(traceback.format_exception(type(e), e, e.__traceback__.tb_next, limit=3)))
-            logger.error(f"Переменные ошибки позиционные: {args}; именованные: {kwargs}")
+            logger.error(f"Переменные при ошибки позиционные: {args}; именованные: {kwargs}")
 
     return wrapper
 
@@ -199,7 +199,7 @@ def echo(event: types.Message):
     )
 
 
-logging.basicConfig(format="%(asctime)s | %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO)
 logger.info("Начинаю работу")
 
 
