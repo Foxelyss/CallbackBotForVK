@@ -61,6 +61,7 @@ def log_exception(func):
             return func(*args, **kwargs)
         except Exception as e:
             logger.error("".join(traceback.format_exception(type(e), e, e.__traceback__.tb_next, limit=3)))
+            logger.error(f"Переменные ошибки позиционные: {args}; именованные: {kwargs}")
 
     return wrapper
 
