@@ -111,7 +111,7 @@ def process_text(event: types.Message, state: FSMContext):
 
     state.update_data(text=event.message.text)
 
-    markup = KeyboardMarkup(one_time=True)
+    markup = KeyboardMarkup(one_time=False)
     markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
     event.reply(
@@ -125,10 +125,7 @@ def process_text(event: types.Message, state: FSMContext):
 @log_exception
 def process_callback(event: types.Message, state: FSMContext):
     if event.message.text != "Фото нет":
-        markup = KeyboardMarkup(one_time=True)
-        markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
-
-        event.answer("Если фото нет, необходимо нажать на кнопку", keyboard=markup)
+        event.answer("Если фото нет, необходимо нажать на кнопку")
         return
 
     photos = []
