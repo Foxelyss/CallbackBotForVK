@@ -124,7 +124,7 @@ def process_text(event: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.waiting_for_photos)
 @log_exception
 def process_callback(event: types.Message, state: FSMContext):
-    if event.message.text != "Фото нет":
+    if event.message.text != "Фото нет" and len(event.message.attachments) == 0:
         event.answer("Если фото нет, необходимо нажать на кнопку")
         return
 
