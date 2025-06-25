@@ -26,7 +26,7 @@ try:
     if access_token is None or delay_in_seconds is None:
         raise Exception()
 except Exception:
-    logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DEBUG, DELAY)")
+    logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DELAY)")
     os.exit(1)
 
 try:
