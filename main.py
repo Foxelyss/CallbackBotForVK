@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import logging
 import traceback
 from functools import wraps
@@ -16,7 +17,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 else:
     logging.error("Данный файл нельзя импортировать как библиотеку")
-    os.exit(100)
+    sys.exit(100)
 
 try:
     access_token = os.getenv("VK_API_KEY")
@@ -27,7 +28,7 @@ try:
         raise Exception()
 except Exception:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DELAY)")
-    os.exit(1)
+    sys.exit(1)
 
 try:
     vk = Vk(access_token=access_token)
@@ -35,7 +36,7 @@ try:
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
-    os.exit(2)
+    sys.exit(2)
 
 
 class Form(StatesGroup):
