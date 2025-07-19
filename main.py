@@ -112,7 +112,7 @@ def process_text(event: types.Message, state: FSMContext):
 
     state.update_data(text=event.message.text)
 
-    markup = KeyboardMarkup(one_time=False)
+    markup = KeyboardMarkup(one_time=False, inline=True)
     markup.add_button(Button.Text(Color.SECONDARY, "Фото нет"))
 
     event.reply(
