@@ -6,4 +6,4 @@ pydotdict==3.3.11
 python-dotenv==1.1.0
 requests==2.32.4
 urllib3==2.5.0
-vk-maria==3.0.8
+vk-maria @ https://github.com/Foxelyss/vk_maria/releases/download/v3.0.9/vk_maria-3.0.8.tar.gz#sha256=9b867d807b7a72357b4fbc831c02a41cb38bec6501d91e2fefc21edd9b650d0b

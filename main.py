@@ -30,9 +30,16 @@ except Exception:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DELAY)")
     sys.exit(1)
 
+
+try:
+    with open("state/latest_event.txt", "r") as file:
+        latest_read_event = int(file.read())
+except:
+    latest_read_event = None
+
 try:
     vk = Vk(access_token=access_token)
-    dp = Dispatcher(vk, PickleStorage("state/state.pck"))
+    dp = Dispatcher(vk, PickleStorage("state/state.pck"), latest_read_event)
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
@@ -200,12 +207,15 @@ logger.info("Начинаю работу")
 
 @log_exception
 def poll():
-    dp.start_polling(debug=debug_mode)
+    return dp.start_polling(debug=debug_mode)
 
 
 try:
-    poll()
+    latest_event = poll()
 except KeyboardInterrupt:
     logger.info("Сохранение состояния на диск")
+finally:
+    with open("state/latest_event.txt", "w") as file:
+        file.write(str(latest_event))
 
 logger.info("Процесс завершился")
