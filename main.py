@@ -1,5 +1,6 @@
 import json
 import os
+import pickle
 import sys
 import logging
 import traceback
@@ -12,6 +13,8 @@ from vk_maria.dispatcher.fsm import StatesGroup, State, PickleStorage, FSMContex
 from vk_maria.types import KeyboardMarkup, Button, Color
 
 load_dotenv()
+load_dotenv("./api_key.env")
+load_dotenv("/run/secrets/vk_token")
 
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
@@ -30,16 +33,9 @@ except Exception:
     logger.error("Не все нужные для работы данные были указаны(VK_API_KEY, VK_TALK_ID, DELAY)")
     sys.exit(1)
 
-
-try:
-    with open("state/latest_event.txt", "r") as file:
-        latest_read_event = int(file.read())
-except:
-    latest_read_event = None
-
 try:
     vk = Vk(access_token=access_token)
-    dp = Dispatcher(vk, PickleStorage("state/state.pck"), latest_read_event)
+    dp = Dispatcher(vk, PickleStorage("state/state.pck"))
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
@@ -209,13 +205,30 @@ logger.info("Начинаю работу")
 def poll():
     return dp.start_polling(debug=debug_mode)
 
+with open("state/state.pck", "rb") as file:
+    previous_state = pickle.load(file)
+
+    dialogs = vk.messages_get_conversations(filter="unread")
+    for chat in dialogs.items:
+        peer_id = chat['conversation']['peer']['id']
+
+        vk.messages_mark_as_read(peer_id=peer_id)
+
+        if previous_state.pop(peer_id,{peer_id:{'state':None}})[peer_id]['state'] is None:
+            vk.messages_send(
+                peer_id=peer_id,
+                message="Извините, запутался в сообщениях, если хотите сформировать и отправить сообщение, нажмите на кнопку ниже(около вашей клавиатуры)",
+                keyboard=default_markup
+            )
+        else:
+            vk.messages_send(
+                peer_id=peer_id,
+                message="Я был занят и не мог продолжить заполнение с Вами, повторите ваш ввод",
+            )
 
 try:
     latest_event = poll()
 except KeyboardInterrupt:
     logger.info("Сохранение состояния на диск")
-finally:
-    with open("state/latest_event.txt", "w") as file:
-        file.write(str(latest_event))
 
 logger.info("Процесс завершился")
