@@ -1,0 +1,17 @@
+services:
+  vk-callback-bot:
+    build: .
+    env_file:
+      - path: .env
+        required: false # default
+      - path: override.env
+        required: false
+    volumes:
+      - state_data:/bot/state
+    secrets:
+      - vk_token
+volumes:
+  state_data:
+secrets:
+  vk_token:
+    file: /etc/keys/api_key.env
