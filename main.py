@@ -49,7 +49,7 @@ class Form(StatesGroup):
     waiting_for_photos: State
 
 
-default_markup = KeyboardMarkup(one_time=False)
+default_markup = KeyboardMarkup(one_time=False, inline=True)
 
 default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
 
@@ -129,7 +129,7 @@ def process_text(event: types.Message, state: FSMContext):
 @log_exception
 def process_callback(event: types.Message, state: FSMContext):
     if event.message.text != "Фото нет" and len(event.message.attachments) == 0:
-        event.answer("Если фото нет, необходимо нажать на кнопку")
+        event.answer("Если фото нет, необходимо нажать на кнопку выше")
         return
 
     photos = []
@@ -217,13 +217,13 @@ with open("state/state.pck", "rb") as file:
         if previous_state.pop(peer_id,{peer_id:{'state':None}})[peer_id]['state'] is None:
             vk.messages_send(
                 peer_id=peer_id,
-                message="Извините, запутался в сообщениях, если хотите сформировать и отправить сообщение, нажмите на кнопку ниже(около вашей клавиатуры)",
+                message="Извините, запутался в сообщениях, если хотели сформировать и отправить сообщение, пожалуйста нажмите на кнопку ниже",
                 keyboard=default_markup
             )
         else:
             vk.messages_send(
                 peer_id=peer_id,
-                message="Я был занят и не мог продолжить заполнение с Вами, повторите ваш ввод",
+                message="Я был занят и не мог продолжить заполнение с Вами, пожалуйста повторите ваш ввод",
             )
 
 try:
