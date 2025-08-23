@@ -16,6 +16,8 @@ load_dotenv()
 load_dotenv("./api_key.env")
 load_dotenv("/run/secrets/vk_token")
 
+logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO)
+
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 else:
@@ -197,7 +199,6 @@ def echo(event: types.Message):
     )
 
 
-logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO)
 logger.info("Начинаю работу")
 
 
@@ -211,6 +212,9 @@ with open("state/state.pck", "rb") as file:
     dialogs = vk.messages_get_conversations(filter="unread")
     for chat in dialogs.items:
         peer_id = chat['conversation']['peer']['id']
+
+        if peer_id > 2000000000:
+            continue
 
         vk.messages_mark_as_read(peer_id=peer_id)
 
