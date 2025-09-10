@@ -52,7 +52,6 @@ class Form(StatesGroup):
 
 
 default_markup = KeyboardMarkup(one_time=False, inline=True)
-
 default_markup.add_button(Button.Text(Color.PRIMARY, "Создать обращение"))
 
 
@@ -78,9 +77,7 @@ def process_name(event: types.Message, state: FSMContext):
         event.answer("Должно быть введено корректное имя и фамилия!")
         return
     if len(name) > 36:
-        event.answer(
-            "Ваши данные слишком длинные, укажите только имя и фамилию, если ошибка остаётся, сократите фамилию или/и имя"
-        )
+        event.answer("Ваши данные слишком длинные, укажите только имя и фамилию, если ошибка остаётся, сократите фамилию или/и имя")
         return
 
     state.update_data(name=name)
@@ -193,10 +190,7 @@ def start_send_process(event):
 @dp.message_handler()
 @log_exception
 def echo(event: types.Message):
-    event.reply(
-        "Для отправки обращения нажмите на кнопку и заполните анкету",
-        keyboard=default_markup,
-    )
+    event.reply("Для отправки обращения нажмите на кнопку и заполните анкету", keyboard=default_markup)
 
 
 logger.info("Начинаю работу")
@@ -206,29 +200,32 @@ logger.info("Начинаю работу")
 def poll():
     return dp.start_polling(debug=debug_mode)
 
-with open("state/state.pck", "rb") as file:
-    previous_state = pickle.load(file)
+def notify_users_of_outage():
+    with open("state/state.pck", "rb") as file:
+        previous_state = pickle.load(file)
 
-    dialogs = vk.messages_get_conversations(filter="unread")
-    for chat in dialogs.items:
-        peer_id = chat['conversation']['peer']['id']
+        dialogs = vk.messages_get_conversations(filter="unread")
+        for chat in dialogs.items:
+            peer_id = chat['conversation']['peer']['id']
 
-        if peer_id > 2000000000:
-            continue
+            if peer_id > 2000000000:
+                continue
 
-        vk.messages_mark_as_read(peer_id=peer_id)
+            vk.messages_mark_as_read(peer_id=peer_id)
 
-        if previous_state.pop(peer_id,{peer_id:{'state':None}})[peer_id]['state'] is None:
-            vk.messages_send(
-                peer_id=peer_id,
-                message="Извините, запутался в сообщениях, если хотели сформировать и отправить сообщение, пожалуйста нажмите на кнопку ниже",
-                keyboard=default_markup
-            )
-        else:
-            vk.messages_send(
-                peer_id=peer_id,
-                message="Я был занят и не мог продолжить заполнение с Вами, пожалуйста повторите ваш ввод",
-            )
+            if previous_state.pop(peer_id,{peer_id:{'state':None}})[peer_id]['state'] is None:
+                vk.messages_send(
+                    peer_id=peer_id,
+                    message="Извините, запутался в сообщениях, если хотели сформировать и отправить сообщение, пожалуйста нажмите на кнопку ниже",
+                    keyboard=default_markup
+                )
+            else:
+                vk.messages_send(
+                    peer_id=peer_id,
+                    message="Я был занят и не мог продолжить заполнение с Вами, пожалуйста повторите ваш ввод",
+                )
+
+notify_users_of_outage()
 
 try:
     latest_event = poll()
