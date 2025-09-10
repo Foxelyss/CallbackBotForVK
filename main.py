@@ -37,7 +37,8 @@ except Exception:
 
 try:
     vk = Vk(access_token=access_token)
-    dp = Dispatcher(vk, PickleStorage("state/state.pck"))
+    storage = PickleStorage("state/state.pck")
+    dp = Dispatcher(vk, storage)
 except Exception as e:
     logger.error("Инициализация не удалась!")
     logger.exception(e)
@@ -201,29 +202,28 @@ def poll():
     return dp.start_polling(debug=debug_mode)
 
 def notify_users_of_outage():
-    with open("state/state.pck", "rb") as file:
-        previous_state = pickle.load(file)
+    dialogs = vk.messages_get_conversations(filter="unread")
+    for chat in dialogs.items:
+        peer_id = chat['conversation']['peer']['id']
 
-        dialogs = vk.messages_get_conversations(filter="unread")
-        for chat in dialogs.items:
-            peer_id = chat['conversation']['peer']['id']
+        if peer_id > 2000000000:
+            continue
 
-            if peer_id > 2000000000:
-                continue
+        vk.messages_mark_as_read(peer_id=peer_id)
 
-            vk.messages_mark_as_read(peer_id=peer_id)
+        if storage.get_state(chat=peer_id, user=peer_id) is None:
+            vk.messages_send(
+                peer_id=peer_id,
+                message="Извините, запутался в сообщениях, если хотели сформировать и отправить сообщение, пожалуйста нажмите на кнопку ниже",
+                keyboard=default_markup
+            )
+        else:
+            vk.messages_send(
+                peer_id=peer_id,
+                message="Я был занят и не мог продолжить заполнение с Вами, пожалуйста повторите ваш ввод",
+            )
 
-            if previous_state.pop(peer_id,{peer_id:{'state':None}})[peer_id]['state'] is None:
-                vk.messages_send(
-                    peer_id=peer_id,
-                    message="Извините, запутался в сообщениях, если хотели сформировать и отправить сообщение, пожалуйста нажмите на кнопку ниже",
-                    keyboard=default_markup
-                )
-            else:
-                vk.messages_send(
-                    peer_id=peer_id,
-                    message="Я был занят и не мог продолжить заполнение с Вами, пожалуйста повторите ваш ввод",
-                )
+        logger.info(f"Отправлено оповещение об отсутствии связи пользователю c id{peer_id}")
 
 notify_users_of_outage()
 
