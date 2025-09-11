@@ -62,6 +62,7 @@ Restart=always
 BurstLimit=0
 BurstLimitInterval=300s
 BurstLimitBurst=0
+KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
