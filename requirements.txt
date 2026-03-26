@@ -4,6 +4,6 @@ idna==3.10
 loguru==0.7.3
 pydotdict==3.3.11
 python-dotenv==1.1.0
-requests==2.32.4
+requests==2.33.0
 urllib3==2.6.0
 vk-maria @ https://github.com/Foxelyss/vk_maria/releases/download/3.0.9/vk_maria-3.0.9.tar.gz#sha256=a6f1c1f4d8f8eee6d05e5bfde2f3c3c7d3678d692ebc33975b138a5bbb0469c0
